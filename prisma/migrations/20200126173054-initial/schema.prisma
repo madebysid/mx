@@ -1,0 +1,18 @@
+datasource db {
+  provider = "sqlite" 
+  url = "***"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Inbox {
+	id String @id
+}
+
+// Next steps:
+// 1. Add your DB connection string as the `url` of the `datasource` block
+// 2. Run `prisma2 introspect` to get your data model into the schema (this will override this file and delete all comments!)
+// 3. Run `prisma2 generate` to generate Prisma Client JS
+// 4. Start using Prisma Client JS in your application

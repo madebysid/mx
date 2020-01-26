@@ -1,0 +1,16 @@
+datasource db {
+  provider = "sqlite" 
+  url = "***"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Inbox {
+	id         String  @id
+	sender     String
+	recipient  String
+	body       String
+}
+
