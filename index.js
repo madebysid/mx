@@ -1,40 +1,57 @@
 const smtp = require('smtp-server').SMTPServer
 const { PrismaClient } = require('@prisma/client')
+const winston = require('winston')
 
 const PORT = process.env.PORT || 25;
-const DEBUG = process.env.DEBUG || false;
 
 const prisma = new PrismaClient();
+const logger = winston.createLogger({
+	level: 'info',
+	format: winston.format.json(),
+	defaultMeta: { service: 'mx' },
+	transports: [
+		new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+		new winston.transports.File({ filename: 'logs/combined.log' })
+	]
+});
+
+if (process.env.NODE_ENV !== 'production') {
+	  logger.add(
+		new winston.transports.Console({
+			format: winston.format.simple()
+		})
+	  );
+}
 
 const server = new smtp({
 	secure: false,
 	name: 'mail.dietcode.io',
 	disabledCommands: ['AUTH'],
 	onConnect: (session, cb) => {
-		console.log('Recieved new mail')
-		DEBUG && console.log('[onConnect]', session)
+		logger.info('Recieved new mail')
+		logger.info('[onConnect]', session)
 		return cb();
 	},
 	onAuth: (auth, session, cb) => {
-		DEBUG && console.log('[onAuth]', auth, session)
+		logger.info('[onAuth]', auth, session)
 		return cb();
 	},
 	onClose: (session) => {
-		DEBUG && console.log('[onClose]', session)
+		logger.info('[onClose]', session)
 	},
 	onMailFrom: (address, session, cb) => {
-		DEBUG && console.log('[onMailFrom]', address, session);
+		logger.info('[onMailFrom]', address, session);
 		return cb();
 	},
 	onRcptTo: (address, session, cb) => {
-		DEBUG && console.log('[onRcptTo]', address, session)
+		logger.info('[onRcptTo]', address, session)
 		return cb();
 	},
 	onData: (stream, session, cb) => {
 		let body = ''
-		DEBUG && console.log('[onData]', session)
-		DEBUG && console.log('[onData] [Stream start]')
-		DEBUG && stream.pipe(process.stdout)
+		logger.info('[onData]', session)
+		logger.info('[onData] [Stream start]')
+		// stream.pipe(process.stdout)
 		stream.on('data', data => body += data)
 		stream.on('end', async () => {
 			await prisma.inboxes.create({
@@ -44,12 +61,12 @@ const server = new smtp({
 					body
 				}
 			}); 
-			DEBUG && console.log('[onData] [Stream end]')
+			logger.info('[onData] [Stream end]')
 			return cb()
 		})
 	}
 })
 
 server.listen(PORT, () => {
-	console.log('Server started at port', PORT)
+	logger.info(`Server started at port ${PORT}`)
 })
