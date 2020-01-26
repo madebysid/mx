@@ -1,3 +1,3 @@
 #!/bin/bash
 
-sudo node index.js
+sudo PORT=25 node index.js

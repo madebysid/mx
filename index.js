@@ -2,7 +2,7 @@ const smtp = require('smtp-server').SMTPServer
 const { PrismaClient } = require('@prisma/client')
 const winston = require('winston')
 
-const PORT = process.env.PORT || 25;
+const PORT = Number(process.env.PORT) || 8000;
 
 const prisma = new PrismaClient();
 const logger = winston.createLogger({
@@ -10,8 +10,8 @@ const logger = winston.createLogger({
 	format: winston.format.json(),
 	defaultMeta: { service: 'mx' },
 	transports: [
-		new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-		new winston.transports.File({ filename: 'logs/combined.log' })
+		new winston.transports.File({ filename: 'logs/error.log', level: 'error', options: { flags: 'w' } }),
+		new winston.transports.File({ filename: 'logs/combined.log',  options: { flags: 'w' } })
 	]
 });
 
